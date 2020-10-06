@@ -1,9 +1,6 @@
 package hu.kincstar.taskmanager;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Task {
     private String user;
@@ -13,40 +10,86 @@ public class Task {
 
     private Task parentTask;
 
-    private Map<Task, RelationType> relatedTasks = new HashMap<>();
+    private Map<RelationType, Set<Task>> relatedTasks = new HashMap<>();
 
     public Task(String user, int estimatedExecutionTime, String description) {
         this.user = user;
         this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
         this.description = description;
+
+        // relatedTasks inicializálása minden RelationType-ra
+        for (int i = 0; i < RelationType.values().length; i++)
+            relatedTasks.put(RelationType.values()[i], new HashSet<>());
     }
 
-    public void AddChild(Task task, boolean setBothWay){
-        if(hasRelation(task)){
-            throw new IllegalArgumentException("Circular relationship found");
+    /**
+     * Felveszi a paraméterként kapott child taskot gyereknek, majd beállítja önmagát szülőnek.
+     * Illegális gyerek paraméter esetén IllegalArgumentException-t dob.
+     * @param child Gyerek elem felvehető, ha gyerek nem azonos az objektummal, a gyereknek még nincs szülője és a
+     *              gyerek nem azonos a gyökér elemmel.
+     */
+    public void AddChild(Task child){
+
+        if(child == this)
+            throw new IllegalArgumentException("Child cannot be self");
+        if(child.getParentTask() != null){
+            throw new IllegalArgumentException("Child already has a parent");
+        }
+        if(getRoot() == child){
+            throw new IllegalArgumentException("Child is the root of self");
         }
 
-        relatedTasks.put(task, RelationType.CHILD);
-
-        if(setBothWay) task.addParent(this, false);
-        // TODO ellenőrizni, hogy nincs-e hurok, illetve nincs-e a listában már
-        // TODO a szülő kapcsolatot is be kellene állítani
-        // TODO előzmény nem lehet szülői és gyerek ágon kapcsolatban és önmaga sem lehet szülő, gyerek ágon, max független
-        // TODO szülő gyerek kapcsolat egyik résztvevője és rokonai sem lehetnek más kapcsolatban egymással
+        relatedTasks.get(RelationType.CHILD).add(child);
+        child.addParent(this);
     }
 
-    private void addParent(Task task, boolean setBothWay) {
-        // TODO
-        if(hasRelation(task)){
-            throw new IllegalArgumentException("Circular relationship found");
+    private void addParent(Task parent) {
+        if(parentTask != null){
+            throw new IllegalStateException("Task has already a parent");
         }
-
-        parentTask = task;
+        parentTask = parent;
     }
 
-    private boolean hasRelation(Task task) {
-        // TODO
-        return false;
+    private Task getRoot() {
+        if(parentTask != null){
+            return parentTask.getRoot();
+        }
+        return this;
+    }
+
+
+    /**
+     * Ellenőrzi, hogy megadott feladat kapcsolódik-e valamilyen szűlő-gyerek kapcsolattal a saját gráfunkhoz.
+     * @param task Ellenőrizendő feladat.
+     * @return  Igaz, ha van kapcsolat, hamis egyébként.
+     */
+    private boolean hasRelationWith(Task task) {
+        if(this == task) return true;
+
+        return  relatedTasks.get(RelationType.CHILD).stream()
+                .anyMatch(child-> child.hasRelationWith(task)) ||
+                (parentTask != null && parentTask.hasRelationWith(task));
+    }
+
+    /**
+     * Felveszi a paraméterként kapott precedessor taskot előfeltételnek, majd beállítja önmagát követő feladatnak.
+     * @param precedessor Előfeltétel elem felvehető, ha előfeltétel nem azonos az objektummal, ha még nincs felvéve
+     *                    előfeltételnek
+     */
+    public void AddPrecedessor(Task precedessor){
+
+        if(precedessor == this)
+            throw new IllegalArgumentException("Precedessor cannot be self");
+
+        relatedTasks.get(RelationType.PREDECESSOR).add(precedessor);
+        precedessor.
+    }
+
+    private void addFollower(Task follower) {
+        if(relatedTasks.get(RelationType.FOLLOWER).contains(follower)){
+            throw new IllegalStateException("Follower has already been added");
+        }
+        relatedTasks.get(RelationType.FOLLOWER).add(follower);
     }
 
     public List<TaskStatus> getPossibleStatusChanges(){
@@ -70,7 +113,11 @@ public class Task {
         return description;
     }
 
-    public Map<Task, RelationType> getRelatedTasks() {
+    public Task getParentTask() {
+        return parentTask;
+    }
+
+    public Map<RelationType, Set<Task>> getRelatedTasks() {
         return relatedTasks;
     }
 
@@ -90,10 +137,6 @@ public class Task {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setRelatedTasks(Map<Task, RelationType> relatedTasks) {
-        this.relatedTasks = relatedTasks;
     }
 
     @Override
