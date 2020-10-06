@@ -1,14 +1,13 @@
 package hu.kincstar.taskmanager;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Task {
     private String user;
     private FibonacciNumber estimatedExecutionTime;
     private TaskStatus status;
     private String description;
-
-    private Task parentTask;
 
     private Map<RelationType, Set<Task>> relatedTasks = new HashMap<>();
 
@@ -28,7 +27,7 @@ public class Task {
      * @param child Gyerek elem felvehető, ha gyerek nem azonos az objektummal, a gyereknek még nincs szülője és a
      *              gyerek nem azonos a gyökér elemmel.
      */
-    public void AddChild(Task child){
+    public void addChild(Task child){
 
         if(child == this)
             throw new IllegalArgumentException("Child cannot be self");
@@ -44,45 +43,69 @@ public class Task {
     }
 
     private void addParent(Task parent) {
-        if(parentTask != null){
+        if(hasParent()){
             throw new IllegalStateException("Task has already a parent");
         }
-        parentTask = parent;
+        relatedTasks.get(RelationType.PARENT).add(parent);
     }
 
+    private boolean hasParent() {
+        return !relatedTasks.get(RelationType.PARENT).isEmpty();
+    }
+
+    /**
+     * Visszaadja a feladat fa gyökér elemét, a szülő elemek mentén.
+     * @return A feladat fa gyökér eleme.
+     */
     private Task getRoot() {
-        if(parentTask != null){
-            return parentTask.getRoot();
+        if(hasParent()){
+            return getParentTask().getRoot();
         }
         return this;
     }
 
-
     /**
-     * Ellenőrzi, hogy megadott feladat kapcsolódik-e valamilyen szűlő-gyerek kapcsolattal a saját gráfunkhoz.
-     * @param task Ellenőrizendő feladat.
-     * @return  Igaz, ha van kapcsolat, hamis egyébként.
+     * Felveszi a paraméterként kapott precedessor taskot előfeltételnek, majd beállítja önmagát követő feladatnak.
+     * @param predecessor Előfeltétel elem felvehető, ha előfeltétel nem azonos az objektummal, ha nem tartozik az
+     *                    objektum követő feladatai (parent és follower ágak) közé.
      */
-    private boolean hasRelationWith(Task task) {
-        if(this == task) return true;
+    public void addPredecessor(Task predecessor){
+        if(predecessor == this)
+            throw new IllegalArgumentException("Predecessor cannot be self");
+        if(isFollowerRelatedTask(predecessor))
+            throw new IllegalArgumentException("Predecessor cannot be a following task");
 
-        return  relatedTasks.get(RelationType.CHILD).stream()
-                .anyMatch(child-> child.hasRelationWith(task)) ||
-                (parentTask != null && parentTask.hasRelationWith(task));
+
+        relatedTasks.get(RelationType.PREDECESSOR).add(predecessor);
+        predecessor.addFollower(this);
     }
 
     /**
-     * Felveszi a paraméterként kapott precedessor taskot előfeltételnek, majd beállítja önmagát követő feladatnak.
-     * @param precedessor Előfeltétel elem felvehető, ha előfeltétel nem azonos az objektummal, ha még nincs felvéve
-     *                    előfeltételnek
+     * Megnézi, hogy a paraméter task egyezik-e selffel, illetve selft bármelyik követő elemével.
+     * @param task Ezt a taskot keressük.
+     * @return Igaz, ha ez a feladat, vagy bármelyik követő feladat megegyezik a paraméter feladattal, egyébként hamis.
      */
-    public void AddPrecedessor(Task precedessor){
+    private boolean isFollower(Task task) {
+        if(task == this) return true;
+        return isFollowerRelatedTask(task);
+    }
 
-        if(precedessor == this)
-            throw new IllegalArgumentException("Precedessor cannot be self");
-
-        relatedTasks.get(RelationType.PREDECESSOR).add(precedessor);
-        precedessor.
+    /**
+     * Megnézi, hogy a paraméter task egyezik-e self bármelyik követő elemével.
+     * @param task Ezt a taskot keressük.
+     * @return Igaz, ha bármelyik követő feladat megegyezik a paraméter feladattal, egyébként hamis.
+     */
+    private boolean isFollowerRelatedTask(Task task) {
+        return relatedTasks.entrySet().stream()
+                // összes követő kapcsolat
+                .filter(keyValuePair -> keyValuePair.getKey() == RelationType.PARENT
+                        || keyValuePair.getKey() == RelationType.FOLLOWER)
+                // csak a set-ek
+                .map(Map.Entry::getValue)
+                // set-ek össze mergelése
+                .flatMap(Set::stream)
+                // ha bármelyik azt mondja magáról, hogy követő task
+                .anyMatch(followerTask -> followerTask.isFollower(task));
     }
 
     private void addFollower(Task follower) {
@@ -96,6 +119,24 @@ public class Task {
         // TODO
         return  null;
     }
+
+    public List<Task> getChildren(){
+        return getRelatedTasks(RelationType.CHILD);
+    }
+
+    public List<Task> getPredecessors(){
+        return getRelatedTasks(RelationType.PREDECESSOR);
+    }
+
+    public List<Task> getFollowers(){
+        return getRelatedTasks(RelationType.FOLLOWER);
+    }
+
+    private List<Task> getRelatedTasks(RelationType relationType){
+        return new ArrayList<>(relatedTasks.get(relationType));
+    }
+
+    // GETTER-ek
 
     public String getUser() {
         return user;
@@ -114,12 +155,14 @@ public class Task {
     }
 
     public Task getParentTask() {
-        return parentTask;
+        return relatedTasks.get(RelationType.PARENT).stream().findFirst().orElse(null);
     }
 
     public Map<RelationType, Set<Task>> getRelatedTasks() {
         return relatedTasks;
     }
+
+    // SETTER-ek
 
     public void setUser(String user) {
         this.user = user;
@@ -139,6 +182,8 @@ public class Task {
         this.description = description;
     }
 
+    // OVERRIDE-ok
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -157,11 +202,15 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        StringBuilder sb = new StringBuilder("Task{" +
                 "user='" + user + '\'' +
                 ", estimatedExecutionTime=" + estimatedExecutionTime +
                 ", status=" + status +
-                ", description='" + description + '\'' +
-                '}';
+                ", description='" + description + '\'');
+        relatedTasks.forEach((relation, tasks) -> sb.append(", ")
+                .append(relation).append("='").append(tasks.size()).append('\''));
+        sb.append('}');
+
+        return sb.toString();
     }
 }
