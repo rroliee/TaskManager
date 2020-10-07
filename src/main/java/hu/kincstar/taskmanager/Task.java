@@ -15,6 +15,7 @@ public class Task {
         this.user = user;
         this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
         this.description = description;
+        this.status = TaskStatus.NEW;
 
         // relatedTasks inicializálása minden RelationType-ra
         for (int i = 0; i < RelationType.values().length; i++)
@@ -116,8 +117,16 @@ public class Task {
     }
 
     public List<TaskStatus> getPossibleStatusChanges(){
-        // TODO
-        return  null;
+        List<TaskStatus> possibleStatuses = TaskStatus.getPossibleStatusFrom(status);
+        // Egy feladatot ne lehessen DONE státuszba helyezni, amíg a CHILD relációban lévő feladatok nincsenek mind DONE státuszban
+        if(getChildren().stream().anyMatch(child -> child.getStatus() != TaskStatus.DONE)){
+            possibleStatuses.remove(TaskStatus.DONE);
+        }
+        // Egy feladatot ne lehessen IN_PROGRESS státuszba helyezni amíg a PRECEDESSOR típusú linkelt feladatok nincsenek DONE státuszban
+        if(getPredecessors().stream().anyMatch(child -> child.getStatus() != TaskStatus.DONE)){
+            possibleStatuses.remove(TaskStatus.IN_PROGRESS);
+        }
+        return  possibleStatuses;
     }
 
     public List<Task> getChildren(){
@@ -172,10 +181,11 @@ public class Task {
         this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
     }
 
-    public void setStatus(TaskStatus status) {
-        // TODO
-        // itt ellenőrizni kellene a státuszváltozást
-        this.status = status;
+    public void setStatus(TaskStatus newStatus) {
+        if(!getPossibleStatusChanges().contains(newStatus)){
+            throw new IllegalArgumentException("Status change not acceptable");
+        }
+        this.status = newStatus;
     }
 
     public void setDescription(String description) {
