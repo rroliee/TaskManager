@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class TaskManager {
     private List<Task> tasks = new ArrayList<>();
 
-    public void AddTask(Task task) {
+    public void addTask(Task task) {
         if (tasks.contains(task)) throw new IllegalArgumentException("Task already added");
 
         tasks.add(task);
@@ -52,7 +52,7 @@ public class TaskManager {
                 .collect(Collectors.toList());
     }
 
-    public void printTaskList(List<Task> tasks) {
+    public static void printTaskList(List<Task> tasks) {
         for (Task task : tasks) System.out.println(task.toString());
     }
 }

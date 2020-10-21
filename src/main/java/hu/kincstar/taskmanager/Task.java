@@ -15,7 +15,11 @@ public class Task {
 
     public Task(String user, int estimatedExecutionTime, String description) {
         this.user = user;
-        this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
+        try {
+            this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
+        }catch (IllegalArgumentException ex){
+            throw new IllegalArgumentException("Estimated execution time is not a fibonacci number");
+        }
         this.description = description;
         this.status = TaskStatus.NEW;
 
