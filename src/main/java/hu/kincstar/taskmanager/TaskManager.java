@@ -1,5 +1,7 @@
 package hu.kincstar.taskmanager;
 
+import hu.kincstar.taskmanager.enums.TaskStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +27,8 @@ public class TaskManager {
 
     public void deleteTask(Task task) {
         if (!tasks.contains(task)) throw new IllegalArgumentException(("Unknown task"));
+        if(task.getChildren().stream().anyMatch(child -> child.getStatus()!= TaskStatus.DONE))
+            throw new IllegalArgumentException(("Task has open sub task(s)"));
 
         tasks.remove(task);
     }

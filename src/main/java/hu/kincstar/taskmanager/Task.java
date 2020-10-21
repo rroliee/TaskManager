@@ -1,7 +1,9 @@
 package hu.kincstar.taskmanager;
 
+import hu.kincstar.taskmanager.enums.RelationType;
+import hu.kincstar.taskmanager.enums.TaskStatus;
+
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Task {
     private String user;
@@ -33,10 +35,10 @@ public class Task {
         if(child == this)
             throw new IllegalArgumentException("Child cannot be self");
         if(child.getParentTask() != null){
-            throw new IllegalArgumentException("Child already has a parent");
+            throw new IllegalArgumentException("Child has already a parent");
         }
         if(getRoot() == child){
-            throw new IllegalArgumentException("Child is the root of self");
+            throw new IllegalArgumentException("Child is the root of its new parent");
         }
 
         relatedTasks.get(RelationType.CHILD).add(child);
@@ -76,13 +78,12 @@ public class Task {
         if(isFollowerRelatedTask(predecessor))
             throw new IllegalArgumentException("Predecessor cannot be a following task");
 
-
         relatedTasks.get(RelationType.PREDECESSOR).add(predecessor);
         predecessor.addFollower(this);
     }
 
     /**
-     * Megnézi, hogy a paraméter task egyezik-e selffel, illetve selft bármelyik követő elemével.
+     * Megnézi, hogy a paraméter task egyezik-e az objektummal, illetve az objektum bármelyik követő elemével.
      * @param task Ezt a taskot keressük.
      * @return Igaz, ha ez a feladat, vagy bármelyik követő feladat megegyezik a paraméter feladattal, egyébként hamis.
      */
@@ -92,13 +93,13 @@ public class Task {
     }
 
     /**
-     * Megnézi, hogy a paraméter task egyezik-e self bármelyik követő elemével.
+     * Megnézi, hogy a paraméter task egyezik-e az objektum bármelyik követő elemével.
      * @param task Ezt a taskot keressük.
      * @return Igaz, ha bármelyik követő feladat megegyezik a paraméter feladattal, egyébként hamis.
      */
     private boolean isFollowerRelatedTask(Task task) {
         return relatedTasks.entrySet().stream()
-                // összes követő kapcsolat
+                // összes követő kapcsolat (PARENT, FOLLOWER)
                 .filter(keyValuePair -> keyValuePair.getKey() == RelationType.PARENT
                         || keyValuePair.getKey() == RelationType.FOLLOWER)
                 // csak a set-ek
@@ -123,7 +124,7 @@ public class Task {
             possibleStatuses.remove(TaskStatus.DONE);
         }
         // Egy feladatot ne lehessen IN_PROGRESS státuszba helyezni amíg a PRECEDESSOR típusú linkelt feladatok nincsenek DONE státuszban
-        if(getPredecessors().stream().anyMatch(child -> child.getStatus() != TaskStatus.DONE)){
+        if(getPredecessors().stream().anyMatch(predecessor -> predecessor.getStatus() != TaskStatus.DONE)){
             possibleStatuses.remove(TaskStatus.IN_PROGRESS);
         }
         return  possibleStatuses;
@@ -144,8 +145,6 @@ public class Task {
     private List<Task> getRelatedTasks(RelationType relationType){
         return new ArrayList<>(relatedTasks.get(relationType));
     }
-
-    // GETTER-ek
 
     public String getUser() {
         return user;
@@ -170,8 +169,6 @@ public class Task {
     public Map<RelationType, Set<Task>> getRelatedTasks() {
         return relatedTasks;
     }
-
-    // SETTER-ek
 
     public void setUser(String user) {
         this.user = user;

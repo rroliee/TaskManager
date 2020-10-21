@@ -1,4 +1,4 @@
-package hu.kincstar.taskmanager;
+package hu.kincstar.taskmanager.enums;
 
 public enum RelationType {
     CHILD, PARENT, PREDECESSOR, FOLLOWER

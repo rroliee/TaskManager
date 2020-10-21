@@ -1,4 +1,4 @@
-package hu.kincstar.taskmanager;
+package hu.kincstar.taskmanager.enums;
 
 import java.util.ArrayList;
 import java.util.List;
