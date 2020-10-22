@@ -34,7 +34,13 @@ public class CliMain {
     }
 
     private static void listTasksByStatus() {
-        // TODO
+        List<MenuItem> statusSelectionMenu = new ArrayList<>();
+        AtomicInteger count = new AtomicInteger();
+        Arrays.stream(TaskStatus.values()).forEach(status-> statusSelectionMenu.add(
+                new MenuItem(Integer.toString(count.getAndIncrement()),
+                        status.toString(),
+                        ()->printTasks(taskManager.getTasksByStatus(status)))));
+        printMenu(statusSelectionMenu);
     }
 
     private static void deleteTask() {
@@ -101,7 +107,11 @@ public class CliMain {
     }
 
     private static void printTasks(List<Task> tasks) {
-        TaskManager.printTaskList(tasks);
+        if(tasks == null || tasks.size() == 0){
+            System.out.println("No tasks found");
+        }else {
+            TaskManager.printTaskList(tasks);
+        }
         printMenu(mainMenu);
     }
 
