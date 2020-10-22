@@ -24,7 +24,13 @@ public class CliMain {
     };
 
     private static void listTasksByUser() {
-        // TODO
+        List<MenuItem> userSelectionMenu = new ArrayList<>();
+        AtomicInteger count = new AtomicInteger();
+        taskManager.getDistinctUsers().forEach(user-> userSelectionMenu.add(
+                new MenuItem(Integer.toString(count.getAndIncrement()),
+                        user,
+                        ()->printTasks(taskManager.getTasksByUser(user)))));
+        printMenu(userSelectionMenu);
     }
 
     private static void listTasksByStatus() {
@@ -91,8 +97,11 @@ public class CliMain {
     }
 
     private static void printAllTasks() {
-        TaskManager.printTaskList(taskManager.getTasks());
+        printTasks(taskManager.getTasks());
+    }
 
+    private static void printTasks(List<Task> tasks) {
+        TaskManager.printTaskList(tasks);
         printMenu(mainMenu);
     }
 
