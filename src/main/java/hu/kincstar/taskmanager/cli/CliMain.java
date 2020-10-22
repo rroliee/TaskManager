@@ -2,6 +2,7 @@ package hu.kincstar.taskmanager.cli;
 
 import hu.kincstar.taskmanager.Task;
 import hu.kincstar.taskmanager.TaskManager;
+import hu.kincstar.taskmanager.enums.TaskStatus;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,9 +24,11 @@ public class CliMain {
     };
 
     private static void listTasksByUser() {
+        // TODO
     }
 
     private static void listTasksByStatus() {
+        // TODO
     }
 
     private static void deleteTask() {
@@ -59,7 +62,32 @@ public class CliMain {
     }
 
     private static void changeStatusOfTask() {
-        // TODO
+        selectTask(CliMain::listPossibleStatusChangesForSelectedTask);
+    }
+
+    private static void listPossibleStatusChangesForSelectedTask() {
+        //TODO
+        if(selectedTask == null){
+            throw new IllegalStateException("No selected task for change status operation");
+        }
+        List<TaskStatus> possibleStatusChanges = selectedTask.getPossibleStatusChanges();
+        if(possibleStatusChanges.size() == 0){
+            System.out.println("Status cannot be changed");
+            printMenu(mainMenu);
+            return;
+        }
+
+        List<MenuItem> statusChangeMenu = new ArrayList<>();
+        AtomicInteger counter = new AtomicInteger();
+        possibleStatusChanges.forEach(taskStatus -> {
+            statusChangeMenu.add(new MenuItem(Integer.toString(counter.getAndIncrement()), taskStatus.name(), () -> {
+                taskManager.changeTaskStatus(selectedTask, taskStatus);
+                System.out.println("Status changed");
+                printMenu(mainMenu);
+            }));
+        });
+
+        printMenu(statusChangeMenu);
     }
 
     private static void printAllTasks() {
