@@ -1,8 +1,9 @@
 package hu.kincstar.taskmanager;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class FibonacciNumber {
+public class FibonacciNumber implements Serializable {
 
     private final int value;
 

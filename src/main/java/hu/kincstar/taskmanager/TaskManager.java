@@ -2,17 +2,25 @@ package hu.kincstar.taskmanager;
 
 import hu.kincstar.taskmanager.enums.TaskStatus;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaskManager {
+    public static final String TASK_MANAGER_STATE = "taskManager.state";
     private List<Task> tasks = new ArrayList<>();
+
+    public TaskManager() {
+        loadState();
+    }
 
     public void addTask(Task task) {
         if (tasks.contains(task)) throw new IllegalArgumentException("Task already added");
 
         tasks.add(task);
+
+        saveState();
     }
 
     public List<Task> getTasks() {
@@ -23,6 +31,8 @@ public class TaskManager {
         if (!tasks.contains(task)) throw new IllegalArgumentException(("Unknown task"));
 
         task.setStatus(newStatus);
+
+        saveState();
     }
 
     public void deleteTask(Task task) {
@@ -31,6 +41,8 @@ public class TaskManager {
             throw new IllegalArgumentException(("Task has open sub task(s)"));
 
         tasks.remove(task);
+
+        saveState();
     }
 
     public List<Task> getTasksByStatus(TaskStatus status) {
@@ -54,5 +66,27 @@ public class TaskManager {
 
     public static void printTaskList(List<Task> tasks) {
         for (Task task : tasks) System.out.println(task.toString());
+    }
+
+    private void saveState(){
+        try (FileOutputStream fout = new FileOutputStream(TASK_MANAGER_STATE);
+             ObjectOutputStream oos = new ObjectOutputStream(fout)){
+            oos.writeObject(tasks);
+            System.out.println("State saved");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadState(){
+        if(new File(TASK_MANAGER_STATE).exists()){
+            try(FileInputStream fin = new FileInputStream(TASK_MANAGER_STATE);
+                ObjectInputStream ois = new ObjectInputStream(fin)) {
+                tasks = (List<Task>) ois.readObject();
+                System.out.println("State loaded");
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

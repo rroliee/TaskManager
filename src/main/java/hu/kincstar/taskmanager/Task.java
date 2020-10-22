@@ -3,9 +3,10 @@ package hu.kincstar.taskmanager;
 import hu.kincstar.taskmanager.enums.RelationType;
 import hu.kincstar.taskmanager.enums.TaskStatus;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Task {
+public class Task implements Serializable {
     private String user;
     private FibonacciNumber estimatedExecutionTime;
     private TaskStatus status;
