@@ -4,21 +4,22 @@ import hu.kincstar.taskmanager.Task;
 import hu.kincstar.taskmanager.TaskManager;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CliMain {
 
-    private static TaskManager taskManager = new TaskManager();
+    private static final TaskManager taskManager = new TaskManager();
+    private static Task selectedTask = null;
+    private static final Scanner scanner = new Scanner(System.in);
 
-    private static Scanner scanner = new Scanner(System.in);
-
-    private static List<MenuItem> mainMenu = new ArrayList<>(){
-        {add(new MenuItem('A', "Add new task",()->addNewTask()));}
-        {add(new MenuItem('L', "List all tasks",()->printAllTasks()));}
-        {add(new MenuItem('C', "Change status of task",()->changeStatusOfTask()));}
-        {add(new MenuItem('D', "Delete task",()->deleteTask()));}
-        {add(new MenuItem('S', "List tasks by status",()->listTasksByStatus()));}
-        {add(new MenuItem('U', "List tasks by user",()->listTasksByUser()));}
-        {add(new MenuItem('X', "Exit",()->{return;}));}
+    private static final List<MenuItem> mainMenu = new ArrayList<>(){
+        {add(new MenuItem("A", "Add new task", CliMain::addNewTask));}
+        {add(new MenuItem("L", "List all tasks", CliMain::printAllTasks));}
+        {add(new MenuItem("C", "Change status of task", CliMain::changeStatusOfTask));}
+        {add(new MenuItem("D", "Delete task", CliMain::deleteTask));}
+        {add(new MenuItem("S", "List tasks by status", CliMain::listTasksByStatus));}
+        {add(new MenuItem("U", "List tasks by user", CliMain::listTasksByUser));}
+        {add(new MenuItem("X", "Exit",()->{}));}
     };
 
     private static void listTasksByUser() {
@@ -28,7 +29,33 @@ public class CliMain {
     }
 
     private static void deleteTask() {
-        // TODO
+        selectTask(CliMain::deleteSelectedTask);
+    }
+
+    private static void selectTask(Runnable callBack) {
+        List<MenuItem> taskSelectionMenu = new ArrayList<>();
+        AtomicInteger counter = new AtomicInteger();
+
+        taskManager.getTasks().forEach(task -> taskSelectionMenu.add(
+                new MenuItem(Integer.toString(counter.getAndIncrement()),
+                        task.toString(),
+                        ()-> selectedTask = task)));
+
+        printMenu(taskSelectionMenu);
+        callBack.run();
+    }
+
+    private static void deleteSelectedTask() {
+        if(selectedTask == null){
+            throw new IllegalStateException("No selected task for delete operation");
+        }
+        try {
+            taskManager.deleteTask(selectedTask);
+            System.out.println("Task deleted");
+        }catch(IllegalArgumentException ex){
+            System.out.println(ex.getMessage());
+        }
+        printMenu(mainMenu);
     }
 
     private static void changeStatusOfTask() {
@@ -91,16 +118,14 @@ public class CliMain {
 
     public static void printMenu(List<MenuItem> menu){
         printLine();
-        menu.forEach(menuItem -> {
-            System.out.println("(" + menuItem.getMenuSelector() + ")" + " " + menuItem.getMenuText());
-        });
+        menu.forEach(CliMain::printMenuLine);
         printLine();
         System.out.println("Please select an option!");
 
-        Character selection = scanner.nextLine().toUpperCase().charAt(0);
+        String selection = scanner.nextLine().toUpperCase();
         if (menuContainsSelector(menu, selection)) {
             System.out.println();
-            getMenuItemBySelector(menu, selection).menuAction.run();
+            getMenuItemBySelector(menu, selection).getMenuAction().run();
             return;
         }
 
@@ -109,12 +134,12 @@ public class CliMain {
         printMenu(menu);
     }
 
-    private static MenuItem getMenuItemBySelector(List<MenuItem> menu, Character selection) {
-        return menu.stream().filter(menuItem -> menuItem.getMenuSelector() == selection).findFirst().orElseThrow();
+    private static MenuItem getMenuItemBySelector(List<MenuItem> menu, String selection) {
+        return menu.stream().filter(menuItem -> menuItem.getMenuSelector().equals(selection)).findFirst().orElseThrow();
     }
 
-    private static boolean menuContainsSelector(List<MenuItem> menu, Character selection) {
-        return menu.stream().anyMatch(menuItem -> menuItem.getMenuSelector() == selection);
+    private static boolean menuContainsSelector(List<MenuItem> menu, String selection) {
+        return menu.stream().anyMatch(menuItem -> menuItem.getMenuSelector().equals(selection));
     }
 
     private static void printLine() {
@@ -125,4 +150,7 @@ public class CliMain {
         // TODO print info
     }
 
+    private static void printMenuLine(MenuItem menuItem) {
+        System.out.println("(" + menuItem.getMenuSelector() + ")" + " " + menuItem.getMenuText());
+    }
 }

@@ -1,17 +1,17 @@
 package hu.kincstar.taskmanager.cli;
 
 public class MenuItem {
-    char menuSelector;
+    String menuSelector;
     String menuText;
     Runnable menuAction;
 
-    public MenuItem(char menuSelector, String menuText, Runnable menuAction) {
-        this.menuSelector = menuSelector;
+    public MenuItem(String menuSelector, String menuText, Runnable menuAction) {
+        this.menuSelector = menuSelector.toUpperCase();
         this.menuText = menuText;
         this.menuAction = menuAction;
     }
 
-    public char getMenuSelector() {
+    public String getMenuSelector() {
         return menuSelector;
     }
 
