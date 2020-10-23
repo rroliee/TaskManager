@@ -78,7 +78,6 @@ public class CliMain {
     }
 
     private static void listPossibleStatusChangesForSelectedTask() {
-        //TODO
         if(selectedTask == null){
             throw new IllegalStateException("No selected task for change status operation");
         }
@@ -91,13 +90,12 @@ public class CliMain {
 
         List<MenuItem> statusChangeMenu = new ArrayList<>();
         AtomicInteger counter = new AtomicInteger();
-        possibleStatusChanges.forEach(taskStatus -> {
-            statusChangeMenu.add(new MenuItem(Integer.toString(counter.getAndIncrement()), taskStatus.name(), () -> {
-                taskManager.changeTaskStatus(selectedTask, taskStatus);
-                System.out.println("Status changed");
-                printMenu(mainMenu);
-            }));
-        });
+        possibleStatusChanges.forEach(taskStatus -> statusChangeMenu.add(
+                new MenuItem(Integer.toString(counter.getAndIncrement()), taskStatus.name(), () -> {
+                    taskManager.changeTaskStatus(selectedTask, taskStatus);
+                    System.out.println("Status changed");
+                    printMenu(mainMenu);
+        })));
 
         printMenu(statusChangeMenu);
     }
@@ -114,6 +112,9 @@ public class CliMain {
         }
         printMenu(mainMenu);
     }
+
+    // TODO child hozzárendelés
+    // TODO predecessor hozzárendelés
 
     public static void addNewTask(){
         System.out.println("Please enter task details");
@@ -140,14 +141,14 @@ public class CliMain {
 
     private static int readIntegerFromConsole(String fieldName) {
         int value = 0;
-        boolean successfullRead = false;
-        while(!successfullRead) {
+        boolean successfulRead = false;
+        while(!successfulRead) {
             try {
                 System.out.println(fieldName + ":");
 
                 if(scanner.hasNextInt()){
                     value = scanner.nextInt();
-                    successfullRead = true;
+                    successfulRead = true;
                 }else{
                     System.out.println("Invalid number");
                 }
@@ -191,10 +192,6 @@ public class CliMain {
 
     private static void printLine() {
         System.out.println("--------------------------------");
-    }
-
-    public static void printStatusInfo(){
-        // TODO print info
     }
 
     private static void printMenuLine(MenuItem menuItem) {
