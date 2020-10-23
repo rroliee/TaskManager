@@ -1,11 +1,13 @@
 package hu.kincstar.taskmanager.cli;
 
-public class MenuItem {
+import java.util.concurrent.Callable;
+
+public class MenuItem<T> {
     String menuSelector;
     String menuText;
-    Runnable menuAction;
+    Callable<T> menuAction;
 
-    public MenuItem(String menuSelector, String menuText, Runnable menuAction) {
+    public MenuItem(String menuSelector, String menuText, Callable<T> menuAction) {
         this.menuSelector = menuSelector.toUpperCase();
         this.menuText = menuText;
         this.menuAction = menuAction;
@@ -19,7 +21,7 @@ public class MenuItem {
         return menuText;
     }
 
-    public Runnable getMenuAction() {
+    public Callable<T> getMenuAction() {
         return menuAction;
     }
 }
