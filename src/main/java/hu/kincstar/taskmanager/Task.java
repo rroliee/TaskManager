@@ -39,7 +39,7 @@ public class Task implements Serializable {
      *              gyerek nem azonos a gyökér elemmel.
      */
     public void addChild(Task child){
-
+        // TODO meg kellene vizsgálni, a taskState-eket is, hogy nem legyen illegális
         if(child == this)
             throw new IllegalArgumentException("Child cannot be self");
         if(child.getParentTask() != null){
@@ -81,6 +81,7 @@ public class Task implements Serializable {
      *                    objektum követő feladatai (parent és follower ágak) közé.
      */
     public void addPredecessor(Task predecessor){
+        // TODO meg kellene vizsgálni, a taskState-eket is, hogy nem legyen illegális
         if(predecessor == this)
             throw new IllegalArgumentException("Predecessor cannot be self");
         if(isFollowerRelatedTask(predecessor))
