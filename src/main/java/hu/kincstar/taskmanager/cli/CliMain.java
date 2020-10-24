@@ -52,24 +52,21 @@ public class CliMain {
     }
 
     private static boolean deleteSelectedTask(Task taskToDelete) {
-        // TODO itt kell hibát kezelni?
+        boolean successful = false;
         try {
-            if(taskToDelete == null){
-                throw new IllegalStateException("No selected task for delete operation");
-            }
             taskManager.deleteTask(taskToDelete);
             System.out.println("Task deleted");
-            return true;
+            successful = true;
         }catch(IllegalArgumentException|IllegalStateException ex) {
             System.err.println(ex.getMessage());
-            return false;
         }
+        return successful;
     }
 
     private static boolean changeStatusOfTask() {
         Task task = selectTask("Select task for status change");
         TaskStatus newStatus = selectPossibleStatusChangesForSelectedTask(task);
-        // TODO try catch
+
         boolean statusChanged = false;
 
         if(newStatus == null){
@@ -104,11 +101,16 @@ public class CliMain {
     private static boolean addChildToTask() {
         Task parentTask = selectTask("Select parent task");
         Task childTask = selectTask("Select child task");
+        boolean successful = false;
 
-        parentTask.addChild(childTask);
-        // TODO hibakezelés
-        System.out.println("Child added");
-        return true;
+        try {
+            parentTask.addChild(childTask);
+            System.out.println("Child added");
+            successful = true;
+        }catch (IllegalArgumentException ex){
+            System.err.println(ex.getMessage());
+        }
+        return successful;
     }
 
     private static Task selectTask(String title) {
@@ -126,11 +128,16 @@ public class CliMain {
     private static boolean addPredecessorToTask() {
         Task followerTask = selectTask("Select follower task");
         Task predecessorTask = selectTask("Select predecessor task");
+        boolean successful = false;
 
-        followerTask.addPredecessor(predecessorTask);
-        // TODO hibakezelés
-        System.out.println("Predecessor added");
-        return true;
+        try {
+            followerTask.addPredecessor(predecessorTask);
+            System.out.println("Predecessor added");
+            successful = true;
+        }catch (IllegalArgumentException ex){
+            System.err.println(ex.getMessage());
+        }
+        return successful;
     }
 
     private static List<Task> printAllTasks() {
@@ -225,7 +232,7 @@ public class CliMain {
                 try {
                     return getMenuItemBySelector(menu, selection).getMenuAction().call();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.err.println(e.getMessage());
                     return null;
                 }
             }
