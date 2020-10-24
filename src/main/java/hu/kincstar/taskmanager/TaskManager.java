@@ -45,6 +45,7 @@ public class TaskManager implements Serializable {
         if(task.getChildren().stream().anyMatch(child -> child.getStatus()!= TaskStatus.DONE))
             throw new IllegalArgumentException(("Task has open sub task(s)"));
 
+        // TODO task relációkat (PARENT, PREDECESSOR, FOLLOWER) is bontani kellene törléskor, ha vannak
         tasks.remove(task);
 
         saveState();
