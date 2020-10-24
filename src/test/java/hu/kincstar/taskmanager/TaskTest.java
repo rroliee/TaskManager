@@ -6,8 +6,8 @@ import org.junit.Test;
 public class TaskTest {
     @Test
     public void AddChildTest(){
-        Task parentTask = new Task("user1", 1, "short description");
-        Task childTask = new Task("user1", 2, "short description");
+        Task parentTask = new Task(0, "user1", 1, "short description");
+        Task childTask = new Task(0, "user1", 2, "short description");
 
         parentTask.addChild(childTask);
 
@@ -17,8 +17,8 @@ public class TaskTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void AddChildCircleTest(){
-        Task parentTask = new Task("user1", 1, "short description");
-        Task childTask = new Task("user1", 2, "short description");
+        Task parentTask = new Task(0, "user1", 1, "short description");
+        Task childTask = new Task(0, "user1", 2, "short description");
 
         parentTask.addChild(childTask);
         childTask.addChild(parentTask);
@@ -26,8 +26,8 @@ public class TaskTest {
 
     @Test
     public void AddPredecessorTest(){
-        Task parentTask = new Task("user1", 1, "short description");
-        Task predecessorTask = new Task("user1", 2, "short description");
+        Task parentTask = new Task(0, "user1", 1, "short description");
+        Task predecessorTask = new Task(0, "user1", 2, "short description");
 
         parentTask.addPredecessor(predecessorTask);
 
@@ -37,8 +37,8 @@ public class TaskTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void AddPredecessorCircleTest(){
-        Task parentTask = new Task("user1", 1, "short description");
-        Task predecessorTask = new Task("user1", 2, "short description");
+        Task parentTask = new Task(0, "user1", 1, "short description");
+        Task predecessorTask = new Task(0, "user1", 2, "short description");
 
         parentTask.addPredecessor(predecessorTask);
         predecessorTask.addPredecessor(parentTask);

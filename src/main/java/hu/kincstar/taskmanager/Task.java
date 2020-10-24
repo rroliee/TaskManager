@@ -5,8 +5,10 @@ import hu.kincstar.taskmanager.enums.TaskStatus;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Task implements Serializable {
+    private final int id;
     private String user;
     private FibonacciNumber estimatedExecutionTime;
     private TaskStatus status;
@@ -14,7 +16,8 @@ public class Task implements Serializable {
 
     private Map<RelationType, Set<Task>> relatedTasks = new HashMap<>();
 
-    public Task(String user, int estimatedExecutionTime, String description) {
+    public Task(int id, String user, int estimatedExecutionTime, String description) {
+        this.id = id;
         this.user = user;
         try {
             this.estimatedExecutionTime = new FibonacciNumber(estimatedExecutionTime);
@@ -135,6 +138,10 @@ public class Task implements Serializable {
         return  possibleStatuses;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public List<Task> getChildren(){
         return getRelatedTasks(RelationType.CHILD);
     }
@@ -214,13 +221,20 @@ public class Task implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Task{" +
-                "user='" + user + '\'' +
-                ", estimatedExecutionTime=" + estimatedExecutionTime +
-                ", status=" + status +
-                ", description='" + description + '\'');
+        StringBuilder sb = new StringBuilder("(")
+                .append(id).append(") ").append("Task{")
+                .append("user='").append(user).append('\'')
+                .append(", estimatedExecutionTime=").append(estimatedExecutionTime)
+                .append(", status=").append(status)
+                .append(", description='").append(description).append('\'');
         relatedTasks.forEach((relation, tasks) -> sb.append(", ")
-                .append(relation).append("='").append(tasks.size()).append('\''));
+                .append(relation).append("='")
+                .append(
+                        tasks.size() == 0 ?
+                                "NA" :
+                                tasks.stream().map(task -> String.valueOf(task.getId())).collect(Collectors.joining(", "))
+                )
+                .append('\''));
         sb.append('}');
 
         return sb.toString();

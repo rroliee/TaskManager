@@ -36,7 +36,7 @@ public class CliMain {
         int estimatedExecutionTime = readIntegerFromConsole("estimated execution time");
 
         try {
-            Task newTask = new Task(user, estimatedExecutionTime, description);
+            Task newTask = new Task(taskManager.getNextId(), user, estimatedExecutionTime, description);
             taskManager.addTask(newTask);
             System.out.println("Task added successfully");
             return newTask;

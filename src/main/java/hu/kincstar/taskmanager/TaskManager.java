@@ -7,12 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TaskManager {
+public class TaskManager implements Serializable {
     public static final String TASK_MANAGER_STATE = "taskManager.state";
     private List<Task> tasks = new ArrayList<>();
+    private int highestId = 0;
 
     public TaskManager() {
         loadState();
+    }
+
+    public int getNextId(){
+        return highestId++;
     }
 
     public void addTask(Task task) {
@@ -71,7 +76,7 @@ public class TaskManager {
     private void saveState(){
         try (FileOutputStream fout = new FileOutputStream(TASK_MANAGER_STATE);
              ObjectOutputStream oos = new ObjectOutputStream(fout)){
-            oos.writeObject(tasks);
+            oos.writeObject(this);
             System.out.println("State saved");
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,7 +87,9 @@ public class TaskManager {
         if(new File(TASK_MANAGER_STATE).exists()){
             try(FileInputStream fin = new FileInputStream(TASK_MANAGER_STATE);
                 ObjectInputStream ois = new ObjectInputStream(fin)) {
-                tasks = (List<Task>) ois.readObject();
+                TaskManager tm = (TaskManager) ois.readObject();
+                this.highestId = tm.highestId;
+                this.tasks = tm.tasks;
                 System.out.println("State loaded");
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
